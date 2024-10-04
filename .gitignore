@@ -1,0 +1,5 @@
+*build/
+*dist/
+*Input/
+*Output
+*DID_XML_check_and_edit.spec
