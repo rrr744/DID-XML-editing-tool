@@ -126,15 +126,50 @@ def editDID(Ipath, path):
 
         Output_xmlFilePath, dateT = outputPathContruction(path, project, ecu)
         tree.write(Output_xmlFilePath, encoding='utf-8', xml_declaration=True) 
-        return "\nFile created!\nChanges done successfully!"
+        return "\nFile created!\nChanges done successfully!\nFile saved."
 
     except Exception as e:
         print(e)
         sleep(5)
         
 
-def deleteDID():
-    pass
+def deleteDID(Ipath, path):
+    try:
+        Input_xmlFilePath = Ipath
+
+        # Parse the XML file
+        tree = ET.parse(Input_xmlFilePath)
+        root = tree.getroot()
+
+        find_DID = input('Enter the DID you want to delete (0xXXXX): ')
+        find_status_flag = True
+
+        def findDIDalgo(find_DID, find_status_flag):
+                for data_identifier in root.findall('DataIdentifier'):
+                    did_hex = data_identifier.find('Did__hex').text
+                    if(did_hex == find_DID):
+                        print('DID found')
+                        find_status_flag = False
+                        return data_identifier, find_status_flag
+        delete_data_identifier, find_result_flag = findDIDalgo(find_DID, find_status_flag)
+        if(find_result_flag):
+            print('DID not found')
+            sleep(2)
+            return 0
+        root.remove(delete_data_identifier)
+        print("\nDID deleted successfully!")
+
+        project = input("\nEnter the project name for output file name: ")
+        ecu = input("Enter ECU: ")
+
+        Output_xmlFilePath, dateT = outputPathContruction(path, project, ecu)
+        tree.write(Output_xmlFilePath, encoding='utf-8', xml_declaration=True) 
+        return "\nFile created!\nChanges done successfully!\nFile saved."
+
+    except Exception as e:
+        print(e)
+        sleep(4)
+    
 
 def editFunctionalStatus(Ipath, path):
 
@@ -218,7 +253,7 @@ def editFunctionalStatus(Ipath, path):
 
                 tree.write(Output_xmlFilePath, encoding='utf-8', xml_declaration=True)
 
-                return "\nFile created!\nChanges done successfully!"
+                return "\nFile created!\nChanges done successfully!\nFile saved."
             
             elif(consent == 'N' or consent == 'n'):
                 return "\nConsent NOT given."
@@ -245,7 +280,7 @@ To exit, type 'exit' and press enter. """)
             print(addDID(IPath, temp_path))
             sleep(2)
         elif(menu == '2'):
-            print(deleteDID())
+            print(deleteDID(IPath, temp_path))
             sleep(2)
         elif(menu == '3'):
             print(editDID(IPath, temp_path))
