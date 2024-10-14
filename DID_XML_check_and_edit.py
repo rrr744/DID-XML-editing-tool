@@ -90,6 +90,52 @@ def addDID(Ipath, path):
         print(e)
         sleep(5)
 
+def editDID(Ipath, path):
+    try:
+        Input_xmlFilePath = Ipath
+
+        # Parse the XML file
+        tree = ET.parse(Input_xmlFilePath)
+        root = tree.getroot()
+
+        find_DID = input('Enter the DID you want to edit (0xXXXX): ')
+        find_status_flag = True
+
+        def findDIDalgo(find_DID, find_status_flag):
+            for data_identifier in root.findall('DataIdentifier'):
+                did_hex = data_identifier.find('Did__hex').text
+                if(did_hex == find_DID):
+                    print('DID found')
+                    find_status_flag = False
+                    return data_identifier, find_status_flag
+
+        find_status_identifier, status_flag = findDIDalgo(find_DID, find_status_flag)        
+
+        if(status_flag):
+            print('DID not found')
+            sleep(2)
+            return 0
+        
+        for child in find_status_identifier:
+            new_value = input(f'{child.tag} (Current value: {child.text}): ')
+
+            if(new_value):
+                child.text = new_value
+        project = input("Enter the project name for output file name: ")
+        ecu = input("Enter ECU: ")
+
+        Output_xmlFilePath, dateT = outputPathContruction(path, project, ecu)
+        tree.write(Output_xmlFilePath, encoding='utf-8', xml_declaration=True) 
+        return "\nFile created!\nChanges done successfully!"
+
+    except Exception as e:
+        print(e)
+        sleep(5)
+        
+
+def deleteDID():
+    pass
+
 def editFunctionalStatus(Ipath, path):
 
     # XML paths assigned
@@ -196,13 +242,17 @@ To exit, type 'exit' and press enter. """)
         menu = input("\nSelect the action to perform: ")
 
         if(menu == '1'):
-            addDID(IPath, temp_path)
-        # elif(menu == '2'):
-        #     deleteDID()
-        # elif(menu == '3'):
-        #     editDID()
+            print(addDID(IPath, temp_path))
+            sleep(2)
+        elif(menu == '2'):
+            print(deleteDID())
+            sleep(2)
+        elif(menu == '3'):
+            print(editDID(IPath, temp_path))
+            sleep(2)
         elif(menu == '4'):
-            editFunctionalStatus(IPath, temp_path)
+            print(editFunctionalStatus(IPath, temp_path))
+            sleep(2)
         elif(menu == 'exit'):
             break
         else:
