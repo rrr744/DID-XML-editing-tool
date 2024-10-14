@@ -12,6 +12,14 @@ def outputPathContruction(path_t, projectName, ecu_name):
 
     return Output_xmlFilePath, dt
 
+def findDIDalgo(find_DID, find_status_flag, root):
+    for data_identifier in root.findall('DataIdentifier'):
+        did_hex = data_identifier.find('Did__hex').text
+        if(did_hex == find_DID):
+            print('DID found')
+            find_status_flag = False
+            return data_identifier, find_status_flag
+
 def getPath():
     try:
         # Get the real path for the folder 'Updated formator stuff' along with py file name 
@@ -27,9 +35,7 @@ def getPath():
         # Construction of input file path
         path_input_xml = os.path.join(path, 'Input/')
         xml_input_filename = os.listdir(path_input_xml)[0]
-        input_path = os.path.join(path_input_xml, xml_input_filename)
-
-        
+        input_path = os.path.join(path_input_xml, xml_input_filename)    
 
         return (input_path, path)
     except Exception as e:
@@ -101,15 +107,7 @@ def editDID(Ipath, path):
         find_DID = input('Enter the DID you want to edit (0xXXXX): ')
         find_status_flag = True
 
-        def findDIDalgo(find_DID, find_status_flag):
-            for data_identifier in root.findall('DataIdentifier'):
-                did_hex = data_identifier.find('Did__hex').text
-                if(did_hex == find_DID):
-                    print('DID found')
-                    find_status_flag = False
-                    return data_identifier, find_status_flag
-
-        find_status_identifier, status_flag = findDIDalgo(find_DID, find_status_flag)        
+        find_status_identifier, status_flag = findDIDalgo(find_DID, find_status_flag, root)        
 
         if(status_flag):
             print('DID not found')
@@ -143,15 +141,8 @@ def deleteDID(Ipath, path):
 
         find_DID = input('Enter the DID you want to delete (0xXXXX): ')
         find_status_flag = True
-
-        def findDIDalgo(find_DID, find_status_flag):
-                for data_identifier in root.findall('DataIdentifier'):
-                    did_hex = data_identifier.find('Did__hex').text
-                    if(did_hex == find_DID):
-                        print('DID found')
-                        find_status_flag = False
-                        return data_identifier, find_status_flag
-        delete_data_identifier, find_result_flag = findDIDalgo(find_DID, find_status_flag)
+    
+        delete_data_identifier, find_result_flag = findDIDalgo(find_DID, find_status_flag, root)
         if(find_result_flag):
             print('DID not found')
             sleep(2)
