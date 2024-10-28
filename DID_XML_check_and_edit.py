@@ -10,7 +10,7 @@ def outputPathContruction(path_t, projectName, ecu_name):
     xml_output_filename = f'Output_XML_{projectName}_{ecu_name}_{formatted_datetime}.xml'
     Output_xmlFilePath = os.path.join(path_output_xml, xml_output_filename)
 
-    return Output_xmlFilePath, dt
+    return Output_xmlFilePath
 
 def findDIDalgo(find_DID, find_status_flag, root):
     for data_identifier in root.findall('DataIdentifier'):
@@ -35,19 +35,30 @@ def getPath():
         # Construction of input file path
         path_input_xml = os.path.join(path, 'Input/')
         xml_input_filename = os.listdir(path_input_xml)[0]
-        input_path = os.path.join(path_input_xml, xml_input_filename)    
+        input_path = os.path.join(path_input_xml, xml_input_filename)  
 
         return (input_path, path)
     except Exception as e:
         print(e)
         sleep(5)
 
-def addDID(Ipath, path):
-    Input_xmlFilePath = Ipath
+def changeCreatedBy(root):
+    dt = datetime.now()
 
-    # Parse the XML file
-    tree = ET.parse(Input_xmlFilePath)
-    root = tree.getroot()
+    date_time = root.find('.//Date_Time')
+    createdBy = root.find('.//Createdby')
+    
+    # XML createdBy and Date Time Input and formatting
+    xml_dateTimeFormat = dt.strftime("%Y-%m-%d %H:%M:%S")
+    try:
+        date_time.text = xml_dateTimeFormat
+        editor_name = input('CreatedBy: ')
+        createdBy.text = editor_name
+    except:
+        pass
+
+def addDID(root):
+    # Parse the XML file   
 
     choice = 'y'
     try:
@@ -78,12 +89,7 @@ def addDID(Ipath, path):
                 ET.SubElement(data_identifier, 'AccessPvg').text = access_pvg
                 ET.SubElement(data_identifier, 'Group_ID').text = group_id
 
-                root.append(data_identifier)
-                project = input("Enter the project name for output file name: ")
-                ecu = input("Enter ECU: ")
-
-                Output_xmlFilePath, dateT = outputPathContruction(path, project, ecu)
-                tree.write(Output_xmlFilePath, encoding='utf-8', xml_declaration=True)
+                root.append(data_identifier)              
 
             elif(choice == 'N' or choice == 'n'):
                 return 0
@@ -96,13 +102,10 @@ def addDID(Ipath, path):
         print(e)
         sleep(5)
 
-def editDID(Ipath, path):
+def editDID(root):
     try:
-        Input_xmlFilePath = Ipath
-
         # Parse the XML file
-        tree = ET.parse(Input_xmlFilePath)
-        root = tree.getroot()
+
 
         find_DID = input('Enter the DID you want to edit (0xXXXX): ')
         find_status_flag = True
@@ -119,26 +122,16 @@ def editDID(Ipath, path):
 
             if(new_value):
                 child.text = new_value
-        project = input("Enter the project name for output file name: ")
-        ecu = input("Enter ECU: ")
-
-        Output_xmlFilePath, dateT = outputPathContruction(path, project, ecu)
-        tree.write(Output_xmlFilePath, encoding='utf-8', xml_declaration=True) 
-        return "\nFile created!\nChanges done successfully!\nFile saved."
+         
+        return "\nFile created!\nChanges done successfully!"
 
     except Exception as e:
         print(e)
         sleep(5)
         
 
-def deleteDID(Ipath, path):
+def deleteDID(root):
     try:
-        Input_xmlFilePath = Ipath
-
-        # Parse the XML file
-        tree = ET.parse(Input_xmlFilePath)
-        root = tree.getroot()
-
         find_DID = input('Enter the DID you want to delete (0xXXXX): ')
         find_status_flag = True
     
@@ -149,32 +142,16 @@ def deleteDID(Ipath, path):
             return 0
         root.remove(delete_data_identifier)
         print("\nDID deleted successfully!")
-
-        project = input("\nEnter the project name for output file name: ")
-        ecu = input("Enter ECU: ")
-
-        Output_xmlFilePath, dateT = outputPathContruction(path, project, ecu)
-        tree.write(Output_xmlFilePath, encoding='utf-8', xml_declaration=True) 
-        return "\nFile created!\nChanges done successfully!\nFile saved."
+         
+        return "\nFile created!\nChanges done successfully!"
 
     except Exception as e:
         print(e)
         sleep(4)
-    
 
-def editFunctionalStatus(Ipath, path):
-
-    # XML paths assigned
-    Input_xmlFilePath = Ipath
-
-    # Parse the XML file
-    tree = ET.parse(Input_xmlFilePath)
-    root = tree.getroot()
-
+def editFunctionalStatus(root):
     # Find the FunctionalStatus element
     functional_status = root.find('FunctionalStatus')
-    date_time = root.find('.//Date_Time')
-    createdBy = root.find('.//Createdby')
 
     # Necessary initializations and declarations
     required_true_attr = []
@@ -228,23 +205,7 @@ def editFunctionalStatus(Ipath, path):
                 else:
                     print("\nNo attributes selected for change to 'false'.")
 
-                project = input("Enter the project name for output file name: ")
-                ecu = input("Enter ECU: ")
-                
-                Output_xmlFilePath, dt = outputPathContruction(path, project, ecu)
-
-                # XML createdBy and Date Time Input and formatting
-                xml_dateTimeFormat = dt.strftime("%Y-%m-%d %H:%M:%S")
-                try:
-                    date_time.text = xml_dateTimeFormat
-                    editor_name = input('CreatedBy: ')
-                    createdBy.text = editor_name
-                except:
-                    pass
-
-                tree.write(Output_xmlFilePath, encoding='utf-8', xml_declaration=True)
-
-                return "\nFile created!\nChanges done successfully!\nFile saved."
+                return "\nFile created!\nChanges done successfully!"
             
             elif(consent == 'N' or consent == 'n'):
                 return "\nConsent NOT given."
@@ -256,6 +217,8 @@ def editFunctionalStatus(Ipath, path):
 if __name__=='__main__':
     os.system('cls')
     IPath, temp_path = getPath()
+    tree = ET.parse(IPath)
+    root = tree.getroot()
 
     while(True):
         os.system('cls')
@@ -268,18 +231,35 @@ To exit, type 'exit' and press enter. """)
         menu = input("\nSelect the action to perform: ")
 
         if(menu == '1'):
-            print(addDID(IPath, temp_path))
+            print(addDID(root))
             sleep(2)
         elif(menu == '2'):
-            print(deleteDID(IPath, temp_path))
+            print(deleteDID(root))
             sleep(2)
         elif(menu == '3'):
-            print(editDID(IPath, temp_path))
+            print(editDID(root))
             sleep(2)
         elif(menu == '4'):
-            print(editFunctionalStatus(IPath, temp_path))
+            print(editFunctionalStatus(root))
             sleep(2)
         elif(menu == 'exit'):
+            while(True):
+                save_consent = input("Do you want to save the file? (Y/N): ")
+                if(save_consent == 'Y' or save_consent == 'y'):
+                    project = input("\nEnter the project name for output file name: ")
+                    ecu = input("Enter ECU: ")
+                    output_path = outputPathContruction(temp_path, project, ecu)
+
+                    changeCreatedBy(root)
+
+                    tree.write(output_path, encoding='utf-8', xml_declaration=True)
+                    print("File saved\n")
+                    break                   
+                elif(save_consent == "N" or save_consent == 'n'):
+                    print("File not saved\n")
+                    break
+                else:
+                    print("Invalid Input!")
             break
         else:
             print("Invalid Input!")
